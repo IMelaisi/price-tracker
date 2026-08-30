@@ -4,22 +4,19 @@ from core.storage import (
     get_or_create_product,
     add_price_entry,
 )
-from adapters.ebag import fetch_and_normalize_category
+from adapters.ebag import fetch_and_normalize_category as fetch_ebag_category
+from adapters.mr_bricolage import fetch_and_normalize_category as fetch_mr_bricolage_category
 
 EBAG_CATEGORY_IDS = [1748]
+MR_BRICOLAGE_CATEGORY_IDS = ["003001001"]
 
 
-def run():
-    session = get_session_instance()
+def run_retailer(session, retailer_name, retailer_website, category_ids, fetch_function):
+    retailer = get_or_create_retailer(session, name=retailer_name, website=retailer_website)
+    inserted = 0
 
-    retailer = get_or_create_retailer(
-        session, name="ebag", website="https://www.ebag.bg/en/"
-    )
-
-    total_inserted = 0
-
-    for cat_id in EBAG_CATEGORY_IDS:
-        items = fetch_and_normalize_category(cat_id)
+    for cat_id in category_ids:
+        items = fetch_function(cat_id)
 
         for item in items:
             product = get_or_create_product(
@@ -41,9 +38,33 @@ def run():
                 discount_percent=item["discount_percent"],
             )
 
-            total_inserted += 1
+            inserted += 1
 
-    print(f"Inserted {total_inserted} price entries.")
+    return inserted
+
+
+def run():
+    session = get_session_instance()
+
+    ebag_count = run_retailer(
+        session,
+        retailer_name="ebag",
+        retailer_website="https://www.ebag.bg/en/",
+        category_ids=EBAG_CATEGORY_IDS,
+        fetch_function=fetch_ebag_category,
+    )
+    print(f"ebag: inserted {ebag_count} price entries.")
+
+    mr_bricolage_count = run_retailer(
+        session,
+        retailer_name="mr_bricolage",
+        retailer_website="https://mr-bricolage.bg/",
+        category_ids=MR_BRICOLAGE_CATEGORY_IDS,
+        fetch_function=fetch_mr_bricolage_category,
+    )
+    print(f"mr_bricolage: inserted {mr_bricolage_count} price entries.")
+
+    print(f"Total inserted: {ebag_count + mr_bricolage_count} price entries.")
 
 
 if __name__ == "__main__":
