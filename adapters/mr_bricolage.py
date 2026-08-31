@@ -4,7 +4,7 @@ import requests
 
 BASE_URL = "https://api.mr-bricolage.bg/occ/v2/bricolage-spa/categories/{cat_id}/products/all"
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; PriceTrackerBot/0.1)"}
-RATE_LIMIT_SECONDS = 1
+RATE_LIMIT_SECONDS = 0.3
 
 
 def fetch_category(cat_id):

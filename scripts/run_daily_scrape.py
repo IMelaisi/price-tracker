@@ -7,7 +7,7 @@ from core.storage import (
 from adapters.ebag import fetch_and_normalize_category as fetch_ebag_category
 from adapters.mr_bricolage import fetch_and_normalize_category as fetch_mr_bricolage_category
 
-EBAG_CATEGORY_IDS = [1748]
+EBAG_CATEGORY_IDS = [3, 1592, 490, 2, 419, 1533, 494, 1880, 1161, 6, 1095, 5, 5125, 7, 27, 28, 26, 29, 1614, 5745, 2305, 1093]
 MR_BRICOLAGE_CATEGORY_IDS = ["003001001"]
 
 
@@ -15,8 +15,10 @@ def run_retailer(session, retailer_name, retailer_website, category_ids, fetch_f
     retailer = get_or_create_retailer(session, name=retailer_name, website=retailer_website)
     inserted = 0
 
-    for cat_id in category_ids:
+    for i, cat_id in enumerate(category_ids, start=1):
+        print(f"[{retailer_name}] Starting category {cat_id} ({i}/{len(category_ids)})")
         items = fetch_function(cat_id)
+        print(f"[{retailer_name}] Finished category {cat_id}: {len(items)} items")
 
         for item in items:
             product = get_or_create_product(

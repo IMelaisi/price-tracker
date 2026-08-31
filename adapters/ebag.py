@@ -3,12 +3,13 @@ import requests
 
 BASE_URL = "https://www.ebag.bg/en/categories/{cat_id}/products/json"
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; PriceTrackerBot/0.1)"}
-RATE_LIMIT_SECONDS = 1
+RATE_LIMIT_SECONDS = 0.3
 
 
 def fetch_category(cat_id):
     url = BASE_URL.format(cat_id=cat_id)
     all_results = []
+    page_number = 1
 
     while url:
         response = requests.get(url, headers=HEADERS, timeout=10)
@@ -16,7 +17,10 @@ def fetch_category(cat_id):
         data = response.json()
 
         all_results.extend(data["results"])
+        print(f"  [ebag] category {cat_id} - page {page_number} - {len(all_results)} items so far")
+
         url = data["next"]
+        page_number += 1
 
         if url:
             time.sleep(RATE_LIMIT_SECONDS)
