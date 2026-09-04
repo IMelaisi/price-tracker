@@ -3,18 +3,28 @@ import requests
 
 BASE_URL = "https://www.ebag.bg/en/categories/{cat_id}/products/json"
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; PriceTrackerBot/0.1)"}
-RATE_LIMIT_SECONDS = 0.3
+RATE_LIMIT_SECONDS = 0.5
 
 
 def fetch_category(cat_id):
     url = BASE_URL.format(cat_id=cat_id)
     all_results = []
     page_number = 1
+    max_retries = 3
 
     while url:
-        response = requests.get(url, headers=HEADERS, timeout=10)
-        response.raise_for_status()
-        data = response.json()
+        for attempt in range(1, max_retries + 1):
+            try:
+                response = requests.get(url, headers=HEADERS, timeout=10)
+                response.raise_for_status()
+                data = response.json()
+                break
+            except requests.exceptions.RequestException as e:
+                print(f"  [ebag] category {cat_id} - page {page_number} - attempt {attempt} failed: {e}")
+                if attempt == max_retries:
+                    print(f"  [ebag] category {cat_id} - page {page_number} - giving up after {max_retries} attempts")
+                    raise
+                time.sleep(2 * attempt)
 
         all_results.extend(data["results"])
         print(f"  [ebag] category {cat_id} - page {page_number} - {len(all_results)} items so far")

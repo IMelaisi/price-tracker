@@ -4,13 +4,14 @@ import requests
 
 BASE_URL = "https://api.mr-bricolage.bg/occ/v2/bricolage-spa/categories/{cat_id}/products/all"
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; PriceTrackerBot/0.1)"}
-RATE_LIMIT_SECONDS = 0.3
+RATE_LIMIT_SECONDS = 0.5
 
 
 def fetch_category(cat_id):
     all_results = []
     current_page = 0
     total_pages = 1
+    max_retries = 3
 
     while current_page < total_pages:
         params = {
@@ -23,11 +24,23 @@ def fetch_category(cat_id):
             "currentPage": current_page,
         }
         url = BASE_URL.format(cat_id=cat_id)
-        response = requests.get(url, headers=HEADERS, params=params, timeout=10)
-        response.raise_for_status()
-        data = response.json()
+
+        for attempt in range(1, max_retries + 1):
+            try:
+                response = requests.get(url, headers=HEADERS, params=params, timeout=10)
+                response.raise_for_status()
+                data = response.json()
+                break
+            except requests.exceptions.RequestException as e:
+                print(f"  [mr_bricolage] category {cat_id} - page {current_page} - attempt {attempt} failed: {e}")
+                if attempt == max_retries:
+                    print(f"  [mr_bricolage] category {cat_id} - page {current_page} - giving up after {max_retries} attempts")
+                    raise
+                time.sleep(2 * attempt)
 
         all_results.extend(data["products"])
+        print(f"  [mr_bricolage] category {cat_id} - page {current_page + 1} - {len(all_results)} items so far")
+
         total_pages = data["pagination"]["totalPages"]
         current_page += 1
 

@@ -30,7 +30,7 @@ if __name__ == "__main__":
     categories = fetch_category_ids()
     print(f"Found {len(categories)} unique category IDs.")
 
-    with open("ebag_category_ids.txt", "w", encoding="utf-8") as f:
+    with open("../ebag_category_ids.txt", "w", encoding="utf-8") as f:
         for slug, cat_id in categories:
             f.write(f"{cat_id}\t{slug}\n")
 
