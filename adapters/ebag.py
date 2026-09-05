@@ -39,14 +39,22 @@ def fetch_category(cat_id):
 
 
 def normalize(raw_item):
+    prices = raw_item.get("prices_data_per_currency", {})
+    preferred_currency = "EUR" if "EUR" in prices else next(iter(prices), "EUR")
+
+    if preferred_currency == "EUR":
+        price_value = float(raw_item["current_price_eur"])
+    else:
+        price_value = float(raw_item["current_price"])
+
     return {
         "source_id": str(raw_item["id"]),
         "name": raw_item["name_en"] or raw_item["name"],
         "brand": raw_item["brand"]["name_en"] if raw_item["brand"] else None,
         "category_id": str(raw_item["main_category_id"]),
         "unit_weight_text": raw_item["unit_weight_text"],
-        "price": float(raw_item["current_price"]),
-        "currency": "BGN",
+        "price": price_value,
+        "currency": preferred_currency,
         "was_promo": raw_item["price_promo"] is not None,
         "discount_percent": raw_item["discount_percent"],
     }

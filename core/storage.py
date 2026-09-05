@@ -37,7 +37,7 @@ def get_or_create_product(session, retailer_id, source_id, name, brand, category
     return product
 
 
-def add_price_entry(session, product_id, price, currency, was_promo, discount_percent):
+def add_price_entry(session, product_id, price, currency, was_promo, discount_percent, commit=True):
     entry = PriceEntry(
         product_id=product_id,
         price=price,
@@ -46,7 +46,8 @@ def add_price_entry(session, product_id, price, currency, was_promo, discount_pe
         discount_percent=discount_percent,
     )
     session.add(entry)
-    session.commit()
+    if commit:
+        session.commit()
     return entry
 
 
